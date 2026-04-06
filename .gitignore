@@ -1,0 +1,18 @@
+# User config (contains personal paths, Zotero ID)
+config.json
+
+# Workspace (temporary search results)
+_workspace/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output files
+*.hwpx
+!scripts/*.hwpx
