@@ -37,12 +37,22 @@ description: "주제별 주간동향 HWPX 보고서 자동 생성. 논문/뉴스
 |------|------|--------|
 | `hwpx_template` | "HWPX 양식 파일(.hwpx) 경로를 입력해주세요" | 없음 (필수) |
 | `output_dir` | "출력 파일을 저장할 디렉토리 경로를 입력해주세요" | 없음 (필수) |
-| `zotero_user_id` | "Zotero 사용자 ID를 입력해주세요 (Zotero 미사용 시 빈칸)" | "" |
+
+**Zotero 설정 (자동):**
+
+`zotero_user_id`는 사용자에게 묻지 않는다. 대신 다음 절차로 자동 획득한다:
+
+1. `ZOTERO_API_KEY` 환경변수 확인
+2. 환경변수가 있으면 → `GET https://api.zotero.org/keys/{ZOTERO_API_KEY}` 호출
+3. 응답의 `userID` 필드를 `config.zotero_user_id`에 저장
+4. 환경변수가 없으면 → Zotero 연동 건너뜀 + 안내 메시지 출력:
+   "Zotero 연동을 원하시면 ZOTERO_API_KEY 환경변수를 설정하세요. API 키는 https://www.zotero.org/settings/keys 에서 발급받을 수 있습니다."
 
 **Zotero API Key 규칙:**
 - `ZOTERO_API_KEY` 환경변수에서 읽는다
-- config.json에 API key를 **저장하지 않는다**
+- config.json에 API key를 **저장하지 않는다** (`zotero_user_id`만 저장)
 - 환경변수가 없으면 Zotero 기능을 건너뛴다
+- 이후 실행 시 config에 `zotero_user_id`가 있어도 `ZOTERO_API_KEY` 환경변수가 없으면 Zotero를 건너뛴다
 
 **설정 완료 후:**
 - config.json을 스킬 디렉토리에 저장
@@ -151,7 +161,8 @@ topic_slug: 주제에서 파일명용 slug 생성
 
 ### Phase 4: Zotero 등록 (선택)
 
-`--no-zotero` 플래그가 없고, `config.zotero_user_id`가 설정되어 있고, `ZOTERO_API_KEY` 환경변수가 존재할 때만 실행.
+`--no-zotero` 플래그가 없고, `ZOTERO_API_KEY` 환경변수가 존재할 때만 실행.
+`config.zotero_user_id`가 없으면 `/keys/{key}` API로 자동 획득 후 config에 저장한다.
 
 1. Zotero Web API로 컬렉션 목록 조회:
 ```python

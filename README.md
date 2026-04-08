@@ -20,17 +20,20 @@ Searches papers, news, and patents on any given topic using parallel agents, ded
 3. On first run, the skill will ask you to configure:
    - Path to your HWPX template file (`.hwpx`)
    - Output directory for generated reports
-   - Zotero user ID (optional)
 
 Configuration is saved to `config.json` (gitignored).
 
 ### Zotero Setup (Optional)
 
-Set the `ZOTERO_API_KEY` environment variable. The API key is **never** stored in config.json.
+Set the `ZOTERO_API_KEY` environment variable. Your numeric Zotero user ID will be **automatically retrieved** via the API — you don't need to know it.
 
 ```bash
 export ZOTERO_API_KEY="your_key_here"
 ```
+
+You can get your API key at https://www.zotero.org/settings/keys
+
+The API key is **never** stored in config.json (only the resolved user ID is saved).
 
 ## Usage
 
