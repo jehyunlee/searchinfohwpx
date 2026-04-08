@@ -13,6 +13,7 @@ description: "주제별 주간동향 HWPX 보고서 자동 생성. 논문/뉴스
 |---------|------|------|------|
 | `주제` (topic) | Yes | 동향 조사 주제 | "휴머노이드", "AI for Science", "양자컴퓨팅" |
 | `기간` (period) | No | 검색 기간 (기본: 8일) | "2주", "1개월", "8days" |
+| `출력폴더` (output_dir) | No | 이번 실행의 출력 경로 (미지정 시 config 값 사용) | "C:/output" |
 | `--no-zotero` | No | Zotero 등록 건너뛰기 | |
 
 사용자가 주제를 전달한다. 누락 시 반드시 물어본다.
@@ -23,36 +24,21 @@ description: "주제별 주간동향 HWPX 보고서 자동 생성. 논문/뉴스
 
 **config.json 경로**: `{이 스킬 디렉토리}/config.json`
 
+**필수 설정 (config.json):**
+
 ```json
 {
-  "zotero_user_id": "1356104",
   "hwpx_template": "C:/path/to/양식.hwpx",
   "output_dir": "C:/path/to/output/"
 }
 ```
 
-**설정 항목 및 질문:**
-
 | 항목 | 질문 | 기본값 |
 |------|------|--------|
 | `hwpx_template` | "HWPX 양식 파일(.hwpx) 경로를 입력해주세요" | 없음 (필수) |
-| `output_dir` | "출력 파일을 저장할 디렉토리 경로를 입력해주세요" | 없음 (필수) |
+| `output_dir` | "출력 파일을 저장할 기본 디렉토리 경로를 입력해주세요" | 없음 (필수) |
 
-**Zotero 설정 (자동):**
-
-`zotero_user_id`는 사용자에게 묻지 않는다. 대신 다음 절차로 자동 획득한다:
-
-1. `ZOTERO_API_KEY` 환경변수 확인
-2. 환경변수가 있으면 → `GET https://api.zotero.org/keys/{ZOTERO_API_KEY}` 호출
-3. 응답의 `userID` 필드를 `config.zotero_user_id`에 저장
-4. 환경변수가 없으면 → Zotero 연동 건너뜀 + 안내 메시지 출력:
-   "Zotero 연동을 원하시면 ZOTERO_API_KEY 환경변수를 설정하세요. API 키는 https://www.zotero.org/settings/keys 에서 발급받을 수 있습니다."
-
-**Zotero API Key 규칙:**
-- `ZOTERO_API_KEY` 환경변수에서 읽는다
-- config.json에 API key를 **저장하지 않는다** (`zotero_user_id`만 저장)
-- 환경변수가 없으면 Zotero 기능을 건너뛴다
-- 이후 실행 시 config에 `zotero_user_id`가 있어도 `ZOTERO_API_KEY` 환경변수가 없으면 Zotero를 건너뛴다
+`output_dir`는 config에 기본값으로 저장되지만, 매 실행 시 입력 파라미터로 다른 경로를 지정할 수 있다.
 
 **설정 완료 후:**
 - config.json을 스킬 디렉토리에 저장
@@ -159,33 +145,14 @@ topic_slug: 주제에서 파일명용 slug 생성
    - 예: "~을 달성했다" → "~을 달성", "~중이다" → "~중"
 6. **정렬**: 날짜 내림차순 (최신이 맨 위)
 
-### Phase 4: Zotero 등록 (선택)
+### Phase 4: HWPX 빌드
 
-`--no-zotero` 플래그가 없고, `ZOTERO_API_KEY` 환경변수가 존재할 때만 실행.
-`config.zotero_user_id`가 없으면 `/keys/{key}` API로 자동 획득 후 config에 저장한다.
-
-1. Zotero Web API로 컬렉션 목록 조회:
-```python
-# Zotero API: GET /users/{config.zotero_user_id}/collections
-# 환경변수 ZOTERO_API_KEY 사용
-```
-
-2. **주제명과 동일한 이름의 컬렉션이 있는지 확인** (대소문자 무시)
-   - 있으면: 해당 컬렉션에 논문/특허 항목 추가
-   - **없으면: Zotero 업로드 건너뛰고 사용자에게 알림** (컬렉션 자동 생성하지 않음)
-
-3. 업로드 대상: 논문과 특허만 (뉴스는 제외)
-4. 각 항목에 대해 Zotero 아이템 생성:
-   - 논문: itemType=journalArticle 또는 preprint
-   - 특허: itemType=patent
-5. 기존 등록된 항목과 URL/DOI로 중복 체크하여 이미 있는 항목은 건너뛰기
-
-### Phase 5: HWPX 빌드
+출력 경로 결정: 입력 파라미터 `출력폴더` > `config.output_dir` 순으로 적용.
 
 ```bash
 PYTHONUTF8=1 python "{스킬디렉토리}/scripts/build_hwpx.py" \
   --template "{config.hwpx_template}" \
-  --output "{config.output_dir}/{YYMMDD}_{topic_slug}_주간동향.hwpx" \
+  --output "{출력폴더}/{YYMMDD}_{topic_slug}_주간동향.hwpx" \
   --data "_workspace/processed_items.json" \
   --today "{YY.MM.DD}" \
   --title "{주제} 분야 국내외 동향"
@@ -193,12 +160,38 @@ PYTHONUTF8=1 python "{스킬디렉토리}/scripts/build_hwpx.py" \
 
 `--title` 파라미터로 문서 제목을 지정한다. 양식의 "휴머노이드 분야 국내외 동향"이 이 값으로 교체된다.
 
-### Phase 6: 후처리 + 검증
+### Phase 5: 후처리 + 검증
 
 ```bash
 PYTHONUTF8=1 python "{스킬디렉토리}/scripts/fix_namespaces.py" "{출력파일}"
 PYTHONUTF8=1 python "{스킬디렉토리}/scripts/validate.py" "{출력파일}"
 ```
+
+### Phase 6: Zotero 등록 (선택 — 생략해도 HWPX 출력에 영향 없음)
+
+이 Phase는 다음 조건을 **모두** 만족할 때만 실행한다. 하나라도 빠지면 건너뛴다:
+- `--no-zotero` 플래그가 없음
+- `ZOTERO_API_KEY` 환경변수가 존재
+
+**Zotero user ID 자동 획득:**
+`config.zotero_user_id`가 없으면 `GET https://api.zotero.org/keys/{ZOTERO_API_KEY}` 호출하여 응답의 `userID`를 config에 저장한다.
+
+**등록 절차:**
+
+1. Zotero Web API로 컬렉션 목록 조회:
+```python
+# GET /users/{config.zotero_user_id}/collections
+```
+
+2. **주제명과 동일한 이름의 컬렉션이 있는지 확인** (대소문자 무시)
+   - 있으면: 해당 컬렉션에 논문/특허 항목 추가
+   - **없으면: 업로드 건너뛰고 사용자에게 알림** (컬렉션 자동 생성하지 않음)
+
+3. 업로드 대상: 논문과 특허만 (뉴스는 제외)
+4. 각 항목에 대해 Zotero 아이템 생성:
+   - 논문: itemType=journalArticle 또는 preprint
+   - 특허: itemType=patent
+5. 기존 등록된 항목과 URL/DOI로 중복 체크하여 이미 있는 항목은 건너뛰기
 
 ### Phase 7: 요약 출력
 
@@ -206,14 +199,16 @@ PYTHONUTF8=1 python "{스킬디렉토리}/scripts/validate.py" "{출력파일}"
 ============================================
   {주제} 주간동향 생성 완료
 ============================================
-파일: {YYMMDD}_{topic_slug}_주간동향.hwpx
+파일: {출력폴더}/{YYMMDD}_{topic_slug}_주간동향.hwpx
 수록: 뉴스 N건, 논문 N건, 특허 N건 (총 N건)
 중복 제거: N건 제거됨
 기간: {DATE_CUTOFF} ~ {오늘}
-Zotero: {컬렉션명}에 N건 등록 / 컬렉션 없어 건너뜀 / 미설정
 검증: PASS
+Zotero: {컬렉션명}에 N건 등록 / 건너뜀 (환경변수 미설정)
 ============================================
 ```
+
+Zotero 줄은 Phase 6이 실행된 경우에만 표시한다.
 
 ## HWPX 양식 구조
 
@@ -234,6 +229,11 @@ Zotero: {컬렉션명}에 N건 등록 / 컬렉션 없어 건너뜀 / 미설정
 
 ## 의존성
 
+**필수:**
 - `search-info` 스킬의 `info-searcher` 에이전트 타입
 - `fix_namespaces.py`, `validate.py` (이 스킬의 `scripts/` 디렉토리에 포함)
 - Python 패키지: `lxml` (validate.py에서 사용)
+
+**선택 (Zotero 연동 시):**
+- 환경변수 `ZOTERO_API_KEY` (https://www.zotero.org/settings/keys 에서 발급)
+- Zotero에 주제명과 동일한 컬렉션이 미리 생성되어 있어야 함

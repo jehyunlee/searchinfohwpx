@@ -9,7 +9,7 @@ Searches papers, news, and patents on any given topic using parallel agents, ded
 - **Any topic**: Not limited to a specific field. Works with any research/industry topic.
 - **Parallel search**: 3 agents (papers, news, patents) search simultaneously.
 - **Deduplication**: URL-based and title-similarity-based (80% threshold) duplicate removal.
-- **Zotero integration**: Auto-registers papers/patents if a matching collection exists.
+- **Zotero integration (optional)**: Auto-registers papers/patents if configured — completely optional, HWPX output works without it.
 - **HWPX output**: Generates a native Korean word processor document from a template.
 - **Korean output**: All titles and summaries are translated to Korean with noun-ending style.
 
@@ -25,15 +25,17 @@ Configuration is saved to `config.json` (gitignored).
 
 ### Zotero Setup (Optional)
 
-Set the `ZOTERO_API_KEY` environment variable. Your numeric Zotero user ID will be **automatically retrieved** via the API — you don't need to know it.
+Zotero integration is **entirely optional**. The skill generates HWPX reports without it.
+
+To enable, set the `ZOTERO_API_KEY` environment variable. Your numeric user ID will be **automatically retrieved** via the API.
 
 ```bash
 export ZOTERO_API_KEY="your_key_here"
 ```
 
-You can get your API key at https://www.zotero.org/settings/keys
+Get your API key at https://www.zotero.org/settings/keys
 
-The API key is **never** stored in config.json (only the resolved user ID is saved).
+The API key is **never** stored in config.json (only the resolved user ID is cached).
 
 ## Usage
 
@@ -42,8 +44,8 @@ In Claude Code:
 ```
 /search-info-hwpx 휴머노이드
 /search-info-hwpx AI for Science 2주
-/search-info-hwpx biomedical 2023년 이후
 /search-info-hwpx quantum computing 1개월 --no-zotero
+/search-info-hwpx 양자컴퓨팅 출력폴더:D:/reports
 ```
 
 ## HWPX Template
@@ -69,9 +71,13 @@ search-info-hwpx/
 
 ## Dependencies
 
+**Required:**
 - Python 3.8+
 - `lxml` (for HWPX validation)
 - Claude Code with `search-info` skill's `info-searcher` agent type
+
+**Optional (Zotero):**
+- `ZOTERO_API_KEY` environment variable
 
 ## License
 
