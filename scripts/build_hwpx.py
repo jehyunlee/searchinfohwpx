@@ -171,6 +171,9 @@ def next_field_id():
     return _field_id[0]
 
 
+# NOTE: <hp:p> 단락에 <hp:linesegarray>(줄 배치 캐시)를 일부러 생성하지 않는다.
+# 한글이 문서를 열 때 자동으로 재계산하며, 수기로 박은 값이 실제 폰트/폭과 어긋나면
+# 레이아웃이 깨질 수 있어 의도적으로 생략함. (재추가 금지)
 def make_url_para_with_link(url):
     fid = next_field_id()
     cmd_url = url.replace(":", "\\:") + ";1;0;0;"
@@ -195,9 +198,6 @@ def make_url_para_with_link(url):
         f'        <hp:fieldEnd beginIDRef="{fid}" fieldid="{_field_seq[0]}"/>\n'
         '      </hp:ctrl>\n'
         '    </hp:run>\n'
-        '    <hp:linesegarray>\n'
-        '      <hp:lineseg textpos="0" vertpos="0" vertsize="1200" textheight="1200" baseline="1020" spacing="360" horzpos="0" horzsize="51024" flags="393216"/>\n'
-        '    </hp:linesegarray>\n'
         '  </hp:p>'
     )
 
@@ -217,9 +217,6 @@ def make_entry(source, title, date_str, url, summary, detail=""):
         '    <hp:run charPrIDRef="35">\n'
         f'      <hp:t>({esc(mm_dd)})</hp:t>\n'
         '    </hp:run>\n'
-        '    <hp:linesegarray>\n'
-        '      <hp:lineseg textpos="0" vertpos="0" vertsize="1400" textheight="1400" baseline="1190" spacing="772" horzpos="0" horzsize="51024" flags="393216"/>\n'
-        '    </hp:linesegarray>\n'
         '  </hp:p>'
     )
     lines.append(make_url_para_with_link(url))
@@ -228,9 +225,6 @@ def make_entry(source, title, date_str, url, summary, detail=""):
         '    <hp:run charPrIDRef="30">\n'
         f'      <hp:t>  \u25cb {esc(summary)}</hp:t>\n'
         '    </hp:run>\n'
-        '    <hp:linesegarray>\n'
-        '      <hp:lineseg textpos="0" vertpos="0" vertsize="1400" textheight="1400" baseline="1190" spacing="772" horzpos="0" horzsize="51024" flags="393216"/>\n'
-        '    </hp:linesegarray>\n'
         '  </hp:p>'
     )
     if detail:
@@ -239,9 +233,6 @@ def make_entry(source, title, date_str, url, summary, detail=""):
             '    <hp:run charPrIDRef="30">\n'
             f'      <hp:t>    - {esc(detail)}</hp:t>\n'
             '    </hp:run>\n'
-            '    <hp:linesegarray>\n'
-            '      <hp:lineseg textpos="0" vertpos="0" vertsize="1400" textheight="1400" baseline="1190" spacing="772" horzpos="0" horzsize="51024" flags="393216"/>\n'
-            '    </hp:linesegarray>\n'
             '  </hp:p>'
         )
     return "\n".join(lines)
@@ -251,9 +242,6 @@ def empty_para():
     return (
         '  <hp:p id="0" paraPrIDRef="34" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">\n'
         '    <hp:run charPrIDRef="30"/>\n'
-        '    <hp:linesegarray>\n'
-        '      <hp:lineseg textpos="0" vertpos="0" vertsize="1400" textheight="1400" baseline="1190" spacing="700" horzpos="0" horzsize="51024" flags="393216"/>\n'
-        '    </hp:linesegarray>\n'
         '  </hp:p>'
     )
 
